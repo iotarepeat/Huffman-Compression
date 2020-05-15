@@ -67,22 +67,22 @@ pub mod compress {
 	/// 	- Insert combined value back to tree
 	/// - Return tree
 	///
-	fn construct_huffman_tree(freq: Vec<Node>) -> Box<Node> {
+	fn construct_huffman_tree(freq: Vec<Node>) -> Node {
 		let mut pq = BinaryHeap::new();
 		for node in freq {
-			pq.push(Option::from(Box::from(node)));
+			pq.push(node);
 		}
 		while pq.len() > 1 {
-			let (a, b) = (pq.pop().flatten().unwrap(), pq.pop().flatten().unwrap());
+			let (a, b) = (pq.pop().unwrap(), pq.pop().unwrap());
 			let new_node = Node {
 				letter: '\0',
 				freq: a.freq + b.freq,
-				left: Option::from(a),
-				right: Option::from(b),
+				left: Option::from(Box::from(a)),
+				right: Option::from(Box::from(b)),
 			};
-			pq.push(Option::from(Box::from(new_node)));
+			pq.push(new_node);
 		}
-		pq.pop().flatten().unwrap()
+		pq.pop().unwrap()
 	}
 	/// Convert huffman tree to a hashmap with key as char and value as encoding
 	/// E.g key = 'a', value = '1000'

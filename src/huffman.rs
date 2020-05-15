@@ -164,9 +164,9 @@ pub mod compress {
 	}
 	/// Compression using huffman's algorithm
 	/// # Data Format
-	/// First byte (n): Length of pre-order traversal of huffman tree
+	/// First byte (n): Length of post-order traversal of huffman tree
 	///
-	/// Following n bytes contain pre-order traversal
+	/// Following n bytes contain post-order traversal
 	///
 	/// Padding byte (p): Padding for final byte
 	///

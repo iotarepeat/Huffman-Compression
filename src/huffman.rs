@@ -67,7 +67,7 @@ pub mod compress {
 	/// 	- Insert combined value back to tree
 	/// - Return tree
 	///
-	fn construct_huffman_tree(freq: Vec<Node>) -> Option<Box<Node>> {
+	fn construct_huffman_tree(freq: Vec<Node>) -> Box<Node> {
 		let mut pq = BinaryHeap::new();
 		for node in freq {
 			pq.push(Option::from(Box::from(node)));
@@ -82,49 +82,52 @@ pub mod compress {
 			};
 			pq.push(Option::from(Box::from(new_node)));
 		}
-		return pq.pop().unwrap();
+		pq.pop().flatten().unwrap()
 	}
 	/// Convert huffman tree to a hashmap with key as char and value as encoding
 	/// E.g key = 'a', value = '1000'
-	fn to_hashmap(node: &Option<Box<Node>>) -> HashMap<char, String> {
-		fn encode(hm: &mut HashMap<char, String>, node: &Option<Box<Node>>, encoding: String) {
-			let node = node.as_ref().unwrap();
+	fn to_hashmap(node: &Node) -> HashMap<char, String> {
+		fn encode(hm: &mut HashMap<char, String>, node: &Node, encoding: String) {
 			if node.left.is_none() {
 				hm.insert(node.letter, encoding);
 			} else {
 				let left_path = String::from(&encoding) + "0";
 				let right_path = String::from(&encoding) + "1";
-				encode(hm, &node.left, left_path);
-				encode(hm, &node.right, right_path);
+				if let Some(left) = &node.left {
+					encode(hm, &left, left_path);
+				}
+				if let Some(right) = &node.right {
+					encode(hm, &right, right_path);
+				}
 			}
 		};
 		let mut hm = HashMap::new();
 		encode(&mut hm, &node, String::new());
 		return hm;
 	}
-	/// Convert huffman node to string of chars using pre-order traversal
-	fn to_string(huffman_node: &Option<Box<Node>>) -> String {
+	/// Convert huffman node to string of chars using post-order traversal
+	fn to_string(huffman_node: &Node) -> String {
 		let mut output = String::new();
-		fn pre_order(node: &Option<Box<Node>>, output_str: &mut String) {
-			match node {
-				Some(node) => {
-					output_str.push(node.letter);
-					pre_order(&node.left, output_str);
-					pre_order(&node.right, output_str);
-				}
-				None => {}
-			};
+		fn post_order(node: &Node, output_str: &mut String) {
+			if let Some(left) = &node.left {
+				post_order(left.as_ref(), output_str);
+			}
+			if let Some(right) = &node.right {
+				post_order(right.as_ref(), output_str);
+			}
+			output_str.push(node.letter);
 		}
-		pre_order(huffman_node, &mut output);
+
+		post_order(huffman_node, &mut output);
 		return output;
 	}
 	/// Convert huffman tree to vector of bytes
 	///
 	/// First element is length of tree
 	///
-	/// Following elements are charectars ing pre-order traversal of tree
-	fn embed_tree(huffman_node: &Option<Box<Node>>) -> Vec<u8> {
-		let mut compressed_data = to_string(&huffman_node).into_bytes();
+	/// Following elements are charectars in post-order traversal of tree
+	fn embed_tree(huffman_node: &Node) -> Vec<u8> {
+		let mut compressed_data = to_string(huffman_node).into_bytes();
 		compressed_data.insert(0, compressed_data.len() as u8); // Append length
 		return compressed_data;
 	}
@@ -132,11 +135,11 @@ pub mod compress {
 	/// Simply maps input characters to their corresponding encoding and return as byte array
 	///
 	/// The first element is padding, (Number of zeroes appended for last encoding), as encoding might not fit into 8 bits
-	fn compress_data(text: &String, huffman_node: &Option<Box<Node>>) -> Vec<u8> {
+	fn compress_data(text: &String, huffman_node: &Node) -> Vec<u8> {
 		let mut byte_stream: Vec<u8> = Vec::new();
 		let (mut byte, mut count) = (0, 0);
 
-		let huffman_map = to_hashmap(&huffman_node);
+		let huffman_map = to_hashmap(huffman_node);
 		for c in text.chars() {
 			let encoding = huffman_map.get(&c).unwrap();
 			for e in encoding.bytes() {

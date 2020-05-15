@@ -108,8 +108,8 @@ pub mod compress {
 		fn pre_order(node: &Option<Box<Node>>, output_str: &mut String) {
 			match node {
 				Some(node) => {
-					pre_order(&node.left, output_str);
 					output_str.push(node.letter);
+					pre_order(&node.left, output_str);
 					pre_order(&node.right, output_str);
 				}
 				None => {}

@@ -41,7 +41,7 @@ pub mod huffman {
 		let mut chars: Vec<char> = text.collect();
 		chars.sort();
 		let mut freq = 0;
-		let mut prev: char = *chars.first().unwrap();
+		let mut prev: char = *chars.first().expect("Input cannot be empty");
 		for c in chars {
 			if c == prev {
 				freq += 1;
@@ -129,6 +129,11 @@ pub mod huffman {
 	/// Convert huffman tree to vector of bytes
 	///
 	/// First element is length of tree
+	///
+	/// There are only 100 or so printable characters 
+	/// based on python's string.printable
+	/// So worst case tree size is 2N-1 = 199
+	/// So a unsigned char will suffice for length of tree
 	///
 	/// Following elements are charectars in post-order traversal of tree
 	fn embed_tree(huffman_node: &Node) -> Vec<u8> {

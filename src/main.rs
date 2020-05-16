@@ -1,6 +1,6 @@
-mod huffman;
+use rust_compression::compress::huffman;
 fn main() {
 	let input = String::from("abcd");
-	let c = huffman::compress::compress(&input);
+	let c = huffman::compress(&input);
 	println!("{:?}", c);
 }

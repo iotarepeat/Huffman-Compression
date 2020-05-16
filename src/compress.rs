@@ -1,4 +1,4 @@
-pub mod compress {
+pub mod huffman {
 	use std::boxed::Box;
 	use std::cmp::Ordering;
 	use std::collections::*;
